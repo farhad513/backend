@@ -4,7 +4,7 @@ module.exports.dbConnect = async () => {
     const mode = process.env.mode
     
     try {
-        if (mode === 'production') {
+        if (mode === 'dev') {
             await mongoose.connect(process.env.DB_PRODUCTION_URL, { useNewURLParser: true })
             console.log("Production database connect....")
         } else {
@@ -19,3 +19,5 @@ module.exports.dbConnect = async () => {
 
     }
 }
+
+

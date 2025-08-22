@@ -18,7 +18,7 @@ require("./utiles/Redis")
 
 app.use(cors({
     origin: mode === 'production'
-        ? ['http://localhost:3000', process.env.user_panel_production_url, process.env.admin_panel_production_url]
+        ? [ process.env.user_panel_production_url, process.env.admin_panel_production_url]
         : ['http://localhost:5173', 'http://localhost:3001'],
     credentials: true
 }))
@@ -27,7 +27,6 @@ const io = socket(server, {
       origin:
         mode === 'production'
           ? [
-              'http://localhost:3000',
               process.env.user_panel_production_url,
               process.env.admin_panel_production_url,
             ]
