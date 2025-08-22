@@ -17,23 +17,44 @@ const server = http.createServer(app)
 require("./utiles/Redis")
 
 app.use(cors({
-    origin: mode === 'production'
-        ? [ process.env.user_panel_production_url, process.env.admin_panel_production_url]
-        : ['http://localhost:5173', 'http://localhost:3001'],
+    origin: [
+        process.env.user_panel_production_url,
+        process.env.admin_panel_production_url
+    ],
     credentials: true
-}))
+}));
+
+
 const io = socket(server, {
     cors: {
-      origin:
-        mode === 'production'
-          ? [
-              process.env.user_panel_production_url,
-              process.env.admin_panel_production_url,
-            ]
-          : ['http://localhost:5173', 'http://localhost:3001'],
-      credentials: true,
+        origin: [
+            process.env.user_panel_production_url,
+            process.env.admin_panel_production_url,
+        ],
+        credentials: true,
     },
-  });
+});
+
+
+// app.use(cors({
+//     origin: mode === 'production'
+//         ? [ process.env.user_panel_production_url, process.env.admin_panel_production_url]
+//         : ['http://localhost:5173', 'http://localhost:3001'],
+//     credentials: true
+// }))
+// const io = socket(server, {
+//     cors: {
+//       origin:
+//         mode === 'production'
+//           ? [
+//               process.env.user_panel_production_url,
+//               process.env.admin_panel_production_url,
+//             ]
+//           : ['http://localhost:5173', 'http://localhost:3001'],
+//       credentials: true,
+//     },
+//   });
+
   
   let allUser = [];
   let allHospital = [];
