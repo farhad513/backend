@@ -134,7 +134,7 @@ app.use(
 );
 app.use(mongoSanitize()); 
 app.use(xss());
-app.enable('trust proxy',1);
+app.set('trust proxy', 1);
 
 
 app.use('/api', require('./routes/bannerRoutes'))
