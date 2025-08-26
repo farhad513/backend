@@ -239,7 +239,7 @@ const get_admin_appoinments = async (req, res) => {
     );
 
     const result = { appointments, totalAppointments };
-    // await redis.setex(cacheKey, 900, JSON.stringify(result));
+    await redis.setex(cacheKey, 900, JSON.stringify(result));
 
     responseReturn(res, 200, result);
   } catch (error) {
@@ -255,6 +255,7 @@ const engToBnNumber = (number) => {
 const hospital_appoinment_status_update = async (req, res) => {
   const { appoinmentId } = req.params;
   const { status, appointmentDate, serial, time } = req.body;
+
   try {
     const author = await authorAppoinmentModel.findById(appoinmentId);
     if (!author)
@@ -263,15 +264,14 @@ const hospital_appoinment_status_update = async (req, res) => {
     const customer = await customerAppoinmentModel
       .findById(author.appoinmentId)
       .populate("doctorId");
-
+    console.log(customer)
     if (!customer)
       return responseReturn(res, 404, { message: "ডাটা পাওয়া যায়নি।" });
 
     // ✅ যদি অ্যাপয়েন্টমেন্ট সম্পন্ন হয়, আর পরিবর্তন করা যাবে না
     if (customer.isComplete) {
       return responseReturn(res, 400, {
-        message:
-          "অ্যাপয়েন্টমেন্ট ইতোমধ্যে সম্পন্ন হয়েছে, পরিবর্তন করা যাবে না।",
+        message: "অ্যাপয়েন্টমেন্ট ইতোমধ্যে সম্পন্ন হয়েছে, পরিবর্তন করা যাবে না।",
       });
     }
 
@@ -330,29 +330,25 @@ const hospital_appoinment_status_update = async (req, res) => {
     let smsMessage = "";
 
     if (status === "confirmed") {
-      // ✅ time হচ্ছে ফ্রন্টএন্ড থেকে আসা সময় (format: "HH:mm")
-      const [hourStr, minuteStr] = time.split(":");
-      const hour = parseInt(hourStr, 10);
-      const minute = parseInt(minuteStr, 10);
+      // ✅ time যদি ISO string আসে (UTC)
+      const dateObj = new Date(time); // UTC
+      let localHour = dateObj.getUTCHours() + 6; // BST +6
+      let localMinute = dateObj.getUTCMinutes();
 
-      const hour12 = hour % 12 === 0 ? 12 : hour % 12;
-      const timePeriod = getBanglaTimePeriod(hour);
+      if (localHour >= 24) localHour -= 24; // next day adjustment
+
+      const hour12 = localHour % 12 === 0 ? 12 : localHour % 12;
+      const timePeriod = getBanglaTimePeriod(localHour);
 
       const formattedTime = `${enToBnNumber(hour12)}:${enToBnNumber(
-        minuteStr.padStart(2, "0")
+        localMinute.toString().padStart(2, "0")
       )} ${timePeriod}`;
 
-      smsMessage = `প্রিয় ${userName}, অভিনন্দন! আপনার অ্যাপয়েন্টমেন্ট ${doctorName} এর সঙ্গে নিশ্চিত করা হয়েছে।
-তারিখ: ${formattedAppointmentDate} সময়: ${formattedTime}${
+      smsMessage = `প্রিয় ${userName}, অভিনন্দন! আপনার অ্যাপয়েন্টমেন্ট ${doctorName} এর সঙ্গে নিশ্চিত করা হয়েছে।\nতারিখ: ${formattedAppointmentDate} সময়: ${formattedTime}${
         banglaSerial ? `\nসিরিয়াল নম্বর: ${banglaSerial}` : ""
-      }
-- মেডি ফাস্ট হেলথ কেয়ার`;
+      }\n- মেডি ফাস্ট হেলথ কেয়ার`;
     } else if (status === "cancelled") {
-      smsMessage = `প্রিয় ${userName}, দুঃখিত! আপনার অ্যাপয়েন্টমেন্টটি বাতিল করা হয়েছে।
-ডাক্তার: ${doctorName}
-তারিখ: ${formattedAppointmentDate}
-
-- মেডি ফাস্ট হেলথ কেয়ার`;
+      smsMessage = `প্রিয় ${userName}, দুঃখিত! আপনার অ্যাপয়েন্টমেন্টটি বাতিল করা হয়েছে।\nডাক্তার: ${doctorName}\nতারিখ: ${formattedAppointmentDate}\n\n- মেডি ফাস্ট হেলথ কেয়ার`;
     }
 
     // ✅ SMS পাঠাও
@@ -368,6 +364,7 @@ const hospital_appoinment_status_update = async (req, res) => {
     return responseReturn(res, 500, { message: "server error" });
   }
 };
+
 
 const get_hospital_appoinments = async (req, res) => {
   const { hospitalId } = req.params;

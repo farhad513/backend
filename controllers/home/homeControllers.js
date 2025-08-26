@@ -383,7 +383,7 @@ const getDoctorsByHospital = async (req, res) => {
         qualification: 1,
         experience: 1,
         slots: 1,
-        hospitalId: 1, // এখানে আনবো, তারপর নাম বদলে দেবো
+        hospitalId: 1, 
       })
       .populate("hospitalId", "name");
 
@@ -398,10 +398,11 @@ const getDoctorsByHospital = async (req, res) => {
       const { hospitalId, ...rest } = doc._doc;
       return {
         ...rest,
+            hospitalId: hospitalId?._id, // এখানে id পাঠানো হচ্ছে
         hospital: hospitalId ? { name: hospitalId.name } : null,
       };
     });
-
+    console.log(formattedDoctors,"formattedDoctors")
     responseReturn(res, 200, {
       doctors: formattedDoctors,
       message: "ডাক্তার লিস্ট সফলভাবে পাওয়া গেছে।",

@@ -151,7 +151,7 @@ app.use('/api/ambulance', require('./routes/dashboard/ambulance.routes'))
 app.use('/api', require('./routes/chatRoutes'))
 // app.use('/api', require('./routes/dashboard/notification.routes'))
 
-app.get('/', (req, res) => res.send('Hello World!'))
+app.get('/', (req, res) => res.send('API CALLED!'))
 
 const port = process.env.PORT
 dbConnect()
